@@ -29,15 +29,13 @@ pub fn process_csv(input: &str, output: &str, format: &OutputFormat) -> anyhow::
             .iter()
             .zip(record.iter())
             .collect::<serde_json::Value>();
-        // println!("{:?}", record);
-        // println!("{:?}", json_value);
         ret.push(json_value);
     }
     let json = match format {
         OutputFormat::Json => serde_json::to_string_pretty(&ret)?,
         OutputFormat::Yaml => serde_yaml::to_string(&ret)?,
     };
-    // let json = serde_json::to_string_pretty(&ret)?;
+
     fs::write(output, json)?;
     Ok(())
 }
