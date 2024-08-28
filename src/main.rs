@@ -1,5 +1,4 @@
 // rcli csv -i input.csv -o output.json --header -d ','
-
 use clap::Parser;
 use rcli::{process_csv, process_genpass, Opts, Subcommand};
 

@@ -1,5 +1,6 @@
 use crate::opts::GenPassOpts;
 use rand::prelude::*;
+use zxcvbn::zxcvbn;
 
 const UPPER: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LOWER: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -37,6 +38,12 @@ pub fn process_genpass(opts: GenPassOpts) -> anyhow::Result<()> {
     let mut password_chars = password.chars().collect::<Vec<char>>();
     password_chars.shuffle(&mut rng);
 
-    println!("{}", password_chars.into_iter().collect::<String>());
+    password = password_chars.into_iter().collect::<String>();
+
+    println!("{}", password);
+
+    let estimate = zxcvbn(&password, &[]);
+    println!("{:?}", estimate.score());
+
     Ok(())
 }
