@@ -3,7 +3,7 @@ use csv::Reader;
 
 use std::fs;
 
-use crate::opts::OutputFormat;
+use crate::cli::OutputFormat;
 // #[derive(Debug, Serialize, Deserialize)]
 // #[serde(rename_all = "PascalCase")]
 // struct Player {

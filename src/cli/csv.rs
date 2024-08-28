@@ -1,25 +1,10 @@
-use clap::Parser;
-use core::fmt;
 use std::{
-    fmt::{Display, Formatter},
+    fmt::{self, Display, Formatter},
     path::Path,
     str::FromStr,
 };
 
-#[derive(Debug, Parser)]
-#[command(name = "rcli", version, author, about,long_about=None)]
-pub struct Opts {
-    #[command(subcommand)]
-    pub cmd: Subcommand,
-}
-
-#[derive(Debug, Parser)]
-pub enum Subcommand {
-    #[command(name = "csv", about = "Convert CSV to JSON")]
-    Csv(CsvOpts),
-    #[command(name = "genpass", about = "Generate random password")]
-    GenPass(GenPassOpts),
-}
+use clap::Parser;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OutputFormat {
@@ -47,25 +32,6 @@ pub struct CsvOpts {
 
     #[arg(long,value_parser=parse_format, default_value = "json")]
     pub format: OutputFormat,
-}
-#[derive(Debug, Parser)]
-pub struct GenPassOpts {
-    /// Length of the password
-    #[arg(short, long, default_value_t = 16)]
-    pub length: u8,
-
-    #[arg(long, default_value_t = true)]
-    pub uppercase: bool,
-
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-
-    #[arg(long, default_value_t = true)]
-    pub number: bool,
-
-    /// Number of passwords to generate
-    #[arg(long, default_value_t = true)]
-    pub symbol: bool,
 }
 
 fn check_file_exist(s: &str) -> Result<String, String> {

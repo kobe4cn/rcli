@@ -1,4 +1,4 @@
-use crate::opts::GenPassOpts;
+use crate::cli::GenPassOpts;
 use rand::prelude::*;
 use zxcvbn::zxcvbn;
 
