@@ -43,7 +43,7 @@ pub fn process_genpass(opts: GenPassOpts) -> anyhow::Result<()> {
     println!("{}", password);
 
     let estimate = zxcvbn(&password, &[]);
-    println!("{:?}", estimate.score());
+    eprintln!("{:?}", estimate.score());
 
     Ok(())
 }
