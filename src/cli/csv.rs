@@ -1,10 +1,11 @@
 use std::{
     fmt::{self, Display, Formatter},
-    path::Path,
     str::FromStr,
 };
 
 use clap::Parser;
+
+use super::check_file_exist;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OutputFormat {
@@ -32,14 +33,6 @@ pub struct CsvOpts {
 
     #[arg(long,value_parser=parse_format, default_value = "json")]
     pub format: OutputFormat,
-}
-
-fn check_file_exist(s: &str) -> Result<String, String> {
-    if Path::new(s).exists() {
-        Ok(s.into())
-    } else {
-        Err("File does not exist".into())
-    }
 }
 
 fn parse_format(s: &str) -> Result<OutputFormat, anyhow::Error> {
