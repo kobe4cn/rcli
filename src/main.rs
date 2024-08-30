@@ -1,17 +1,14 @@
+use std::fs;
+
 // rcli csv -i input.csv -o output.json --header -d ','
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_genpass, Base64SubCommand, Opts,
-    Subcommand,
+    process_csv, process_decode, process_encode, process_genpass, process_key_generate,
+    process_sign, process_verify, Base64SubCommand, Opts, Subcommand, TextSubCommand,
 };
 
+use zxcvbn::zxcvbn;
 fn main() -> anyhow::Result<()> {
-    // let mut op= math_op("add");
-    // let (x,y)=(10,20);
-    // println!("{}+{}={}",x,y,op(x,y));
-    // op=math_op("sub");
-    // println!("{}-{}={}",x,y,op(x,y));
-
     let opts = Opts::parse();
     match opts.cmd {
         Subcommand::Csv(opts) => {
@@ -22,10 +19,46 @@ fn main() -> anyhow::Result<()> {
             };
             process_csv(&opts.input, &output, &opts.format)?
         }
-        Subcommand::GenPass(opts) => process_genpass(opts)?,
+        Subcommand::GenPass(opts) => {
+            let password = process_genpass(opts)?;
+            println!("{}", password);
+            let estimate = zxcvbn(&password, &[]);
+            eprintln!("{:?}", estimate.score());
+        }
         Subcommand::Base64(subcmd) => match subcmd {
-            Base64SubCommand::Encode(opts) => process_encode(&opts.input, opts.format)?,
-            Base64SubCommand::Decode(opts) => process_decode(&opts.input, opts.format)?,
+            Base64SubCommand::Encode(opts) => {
+                let encode = process_encode(&opts.input, opts.format)?;
+                println!("{}", encode);
+            }
+            Base64SubCommand::Decode(opts) => {
+                let decode = process_decode(&opts.input, opts.format)?;
+                println!("{}", decode);
+            }
+        },
+        Subcommand::Text(subcmd) => match subcmd {
+            TextSubCommand::Sign(opts) => {
+                let sig = process_sign(&opts.input, &opts.key, opts.format)?;
+                println!("{}", sig);
+            }
+            TextSubCommand::Verify(opts) => {
+                let ret = process_verify(&opts.input, &opts.key, &opts.signature, opts.format)?;
+                println!("{}", ret);
+            }
+            TextSubCommand::Generate(opts) => {
+                let key = process_key_generate(opts.format)?;
+                match opts.format {
+                    rcli::TextSignFormat::Blake3 => {
+                        let name = &opts.output.join("blake3.txt");
+                        fs::write(name, &key[0])?;
+                    }
+                    rcli::TextSignFormat::ED25519 => {
+                        let name = &opts.output;
+                        fs::write(name.join("ed25519.sk"), &key[0])?;
+                        fs::write(name.join("ed25519.pk"), &key[1])?;
+                    }
+                }
+                println!("{:?}", key);
+            }
         },
     }
 

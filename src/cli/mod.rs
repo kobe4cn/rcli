@@ -1,6 +1,7 @@
 mod base64;
 mod csv;
 mod genpass;
+mod text;
 
 use std::path::Path;
 
@@ -8,6 +9,7 @@ pub use self::base64::{Base64Format, Base64SubCommand};
 use self::csv::CsvOpts;
 pub use self::csv::OutputFormat;
 pub use self::genpass::GenPassOpts;
+pub use self::text::{TextSignFormat, TextSubCommand};
 use clap::Parser;
 
 #[derive(Debug, Parser)]
@@ -25,6 +27,8 @@ pub enum Subcommand {
     GenPass(GenPassOpts),
     #[command(subcommand)]
     Base64(Base64SubCommand),
+    #[command(subcommand)]
+    Text(TextSubCommand),
 }
 
 fn check_file_exist(s: &str) -> Result<String, String> {
