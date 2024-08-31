@@ -3,8 +3,9 @@ use std::fs;
 // rcli csv -i input.csv -o output.json --header -d ','
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_genpass, process_key_generate,
-    process_sign, process_verify, Base64SubCommand, Opts, Subcommand, TextSubCommand,
+    process_csv, process_decode, process_decrypt, process_encode, process_encrypt, process_genpass,
+    process_key_generate, process_sign, process_verify, Base64SubCommand, Opts, Subcommand,
+    TextSubCommand,
 };
 
 use zxcvbn::zxcvbn;
@@ -58,6 +59,24 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
                 println!("{:?}", key);
+            }
+            TextSubCommand::Encrypt(opts) => {
+                let ret = process_encrypt(&opts.input, &opts.key, &opts.nonce)?;
+                println!("{}", ret);
+            }
+            TextSubCommand::Decrypt(opts) => {
+                let ret = process_decrypt(&opts.input, &opts.key, &opts.nonce)?;
+                println!("{}", ret);
+            }
+            TextSubCommand::Chakey(opts) => {
+                let key = rcli::process_chacha_key_generate()?;
+                println!("{:?}", key);
+                let name = &opts.output.join("chachakey.txt");
+                let nonce = &opts.output.join("nonce.txt");
+                fs::write(name, &key[0])?;
+                fs::write(nonce, &key[1])?;
+                println!("key: {:?}", key[0]);
+                println!("nonce: {:?}", key[1]);
             }
         },
     }

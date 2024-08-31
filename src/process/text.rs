@@ -1,9 +1,15 @@
 use std::{fs, io::Read, path::Path, str::FromStr};
 
+use anyhow::Ok;
+use base64::prelude::*;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 
 use crate::{cli::GenPassOpts, reader_from_input, TextSignFormat};
+use chacha20poly1305::{
+    aead::{generic_array::GenericArray, Aead, AeadCore, KeyInit},
+    ChaCha20Poly1305,
+};
 
 use super::process_genpass;
 
@@ -47,6 +53,94 @@ pub fn process_verify(
     };
 
     Ok(verified)
+}
+
+pub struct Encrypt {
+    key: [u8; 32],
+    nonce: [u8; 12],
+}
+impl Encrypt {
+    pub fn new(key: [u8; 32], nonce: [u8; 12]) -> Self {
+        Self { key, nonce }
+    }
+
+    pub fn try_new(key: &[u8], nonce: &[u8]) -> anyhow::Result<Self> {
+        let key = key.try_into()?;
+        let nonce = nonce.try_into()?;
+        let encrypt = Encrypt::new(key, nonce);
+        Ok(encrypt)
+    }
+}
+
+pub struct Decrypt {
+    key: [u8; 32],
+    nonce: [u8; 12],
+}
+
+impl Decrypt {
+    pub fn new(key: [u8; 32], nonce: [u8; 12]) -> Self {
+        Self { key, nonce }
+    }
+
+    pub fn try_new(key: &[u8], nonce: &[u8]) -> anyhow::Result<Self> {
+        let key = key.try_into()?;
+        let nonce = nonce.try_into()?;
+        let decrypt = Decrypt::new(key, nonce);
+        Ok(decrypt)
+    }
+}
+
+pub trait ChaKeyLoader {
+    fn load(path: impl AsRef<Path>, path1: impl AsRef<Path>) -> anyhow::Result<Self>
+    where
+        Self: Sized;
+}
+
+impl ChaKeyLoader for Encrypt {
+    fn load(path: impl AsRef<Path>, path1: impl AsRef<Path>) -> anyhow::Result<Self> {
+        let key = fs::read(path)?;
+        let nonce = fs::read(path1)?;
+        let encrypt = Encrypt::try_new(&key, &nonce)?;
+        Ok(encrypt)
+    }
+}
+
+impl ChaKeyLoader for Decrypt {
+    fn load(path: impl AsRef<Path>, path1: impl AsRef<Path>) -> anyhow::Result<Self> {
+        let key = fs::read(path)?;
+        let nonce = fs::read(path1)?;
+        let decrypt = Decrypt::try_new(&key, &nonce)?;
+        Ok(decrypt)
+    }
+}
+
+pub fn process_encrypt(input: &str, key: &str, nonce: &str) -> anyhow::Result<String> {
+    let encrypt = Encrypt::load(key, nonce)?;
+    let buffer = reader_from_input(input)?;
+    let key = encrypt.key;
+    let nonce = encrypt.nonce;
+    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key));
+
+    let ciphertext = cipher.encrypt(GenericArray::from_slice(&nonce), buffer.as_ref());
+    // Ok(String::from_utf8(ciphertext.map_err(|_| anyhow::anyhow!("encrypt failed"))?).unwrap())
+    Ok(BASE64_STANDARD_NO_PAD.encode(ciphertext.map_err(|_| anyhow::anyhow!("encrypt failed"))?))
+}
+
+pub fn process_decrypt(input: &str, key: &str, nonce: &str) -> anyhow::Result<String> {
+    let decrypt = Decrypt::load(key, nonce)?;
+    let buffer = reader_from_input(input)?;
+    //因为在encrypt输出的时候进行了base64编码，所以这里需要解码，如果不进行解码会出错
+    let buffer = BASE64_STANDARD_NO_PAD.decode(buffer.as_bytes())?;
+    ///////////////////////////////////////////////////////
+    let key = decrypt.key;
+    println!("{:?}", key);
+    let nonce = decrypt.nonce;
+    println!("{:?}", nonce);
+    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key));
+
+    let plaintext = cipher.decrypt(GenericArray::from_slice(&nonce), buffer.as_ref());
+    println!("{:?}", plaintext);
+    Ok(String::from_utf8(plaintext.map_err(|e| anyhow::anyhow!(e))?).unwrap())
 }
 
 pub trait TextSign {
@@ -215,6 +309,12 @@ pub fn process_key_generate(format: TextSignFormat) -> anyhow::Result<Vec<Vec<u8
         TextSignFormat::Blake3 => Blake3::generate(),
         TextSignFormat::ED25519 => ED25519Signer::generate(),
     }
+}
+
+pub fn process_chacha_key_generate() -> anyhow::Result<Vec<Vec<u8>>> {
+    let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    Ok(vec![key.to_vec(), nonce.to_vec()])
 }
 
 #[cfg(test)]

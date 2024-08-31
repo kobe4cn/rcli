@@ -19,6 +19,37 @@ pub enum TextSubCommand {
     Verify(TextVerifyOpts),
     #[command(about = "Generate a new key")]
     Generate(TextKeyGenerateOps),
+
+    #[command(about = "Encrypt a message")]
+    Encrypt(TextEncryptOpts),
+    #[command(about = "Decrypt a message")]
+    Decrypt(TextDecryptOpts),
+    #[command(about = "Generate Cha Cha 20 key")]
+    Chakey(ChaCha20KeyOpts),
+}
+
+#[derive(Debug, Parser)]
+pub struct ChaCha20KeyOpts {
+    #[arg(short,long, value_parser=verify_path)]
+    pub output: PathBuf,
+}
+#[derive(Debug, Parser)]
+pub struct TextEncryptOpts {
+    #[arg(short,long, default_value = "-",value_parser=check_file_exist)]
+    pub input: String,
+    #[arg(short,long, value_parser=check_file_exist)]
+    pub key: String,
+    #[arg(short,long, value_parser=check_file_exist)]
+    pub nonce: String,
+}
+#[derive(Debug, Parser)]
+pub struct TextDecryptOpts {
+    #[arg(short,long, default_value = "-",value_parser=check_file_exist)]
+    pub input: String,
+    #[arg(short,long, value_parser=check_file_exist)]
+    pub key: String,
+    #[arg(short,long, value_parser=check_file_exist)]
+    pub nonce: String,
 }
 
 #[derive(Debug, Parser)]
