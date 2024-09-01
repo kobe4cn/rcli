@@ -1,2 +1,23 @@
-### test index
+### test static file
 GET http://localhost:8080/Cargo.toml
+
+###Test static file with tower-http
+GET http://localhost:8080/Cargo.toml HTTP/2
+Range: bytes=101-
+Accept-Encoding: gzip, deflate, br
+
+###Test static file with tower-http
+GET http://localhost:8080/fixture HTTP/2
+Range: bytes=0-
+Accept-Encoding: gzip, deflate, br
+
+
+###Test diectory list return
+GET http://localhost:8080/fixture
+Range: bytes=0-
+Accept-Encoding: gzip, deflate, br
+
+###Test diectory list return
+GET http://localhost:8080/
+Range: bytes=0-
+Accept-Encoding: gzip, deflate, br
