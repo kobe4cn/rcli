@@ -73,10 +73,10 @@ pub fn process_jwt_sign(sub: &str, aud: &str, key: &str, exp: &str) -> anyhow::R
         let exp = exp.strip_suffix("d"); //&exp[..exp.len() - 1];
         datatime += Duration::days(exp.and_then(|s| s.parse::<i64>().ok()).unwrap());
     } else if exp.ends_with("m") {
-        let exp = exp.strip_suffix("d");
+        let exp = exp.strip_suffix("m");
         datatime += Duration::minutes(exp.and_then(|s| s.parse::<i64>().ok()).unwrap());
-    } else if exp.ends_with("M") {
-        let exp = exp.strip_suffix("d");
+    } else if exp.ends_with("w") {
+        let exp = exp.strip_suffix("w");
         datatime += Duration::weeks(exp.and_then(|s| s.parse::<i64>().ok()).unwrap());
     }
     let datatime_s = datatime.timestamp().to_string().clone();
