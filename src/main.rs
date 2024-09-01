@@ -4,8 +4,8 @@ use std::fs;
 use clap::Parser;
 use rcli::{
     process_csv, process_decode, process_decrypt, process_encode, process_encrypt, process_genpass,
-    process_key_generate, process_sign, process_verify, Base64SubCommand, Opts, Subcommand,
-    TextSubCommand,
+    process_jwt_sign, process_jwt_verify, process_key_generate, process_sign, process_verify,
+    Base64SubCommand, JwtSubCommand, Opts, Subcommand, TextSubCommand,
 };
 
 use zxcvbn::zxcvbn;
@@ -77,6 +77,19 @@ fn main() -> anyhow::Result<()> {
                 fs::write(nonce, &key[1])?;
                 println!("key: {:?}", key[0]);
                 println!("nonce: {:?}", key[1]);
+            }
+        },
+        Subcommand::Jwt(subcmd) => match subcmd {
+            JwtSubCommand::Sign(opts) => {
+                // println!("{:?}", opts);
+                let ret = process_jwt_sign(&opts.sub, &opts.aud, &opts.key, &opts.exp)?;
+                println!("{}", ret);
+            }
+            JwtSubCommand::Verify(opts) => {
+                let ret = process_jwt_verify(&opts.token, &opts.key)?;
+                println!("{:?}", ret);
+                // let ret = process_jwt_verify(&opts)?;
+                // println!("{}", ret);
             }
         },
     }

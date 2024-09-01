@@ -16,7 +16,6 @@ use super::process_genpass;
 //加密
 pub fn process_sign(input: &str, key: &str, format: TextSignFormat) -> anyhow::Result<String> {
     let buffer = reader_from_input(input)?;
-
     let signed = match format {
         TextSignFormat::Blake3 => {
             let signer = Blake3::load(key)?;
@@ -133,13 +132,9 @@ pub fn process_decrypt(input: &str, key: &str, nonce: &str) -> anyhow::Result<St
     let buffer = BASE64_STANDARD_NO_PAD.decode(buffer.as_bytes())?;
     ///////////////////////////////////////////////////////
     let key = decrypt.key;
-    println!("{:?}", key);
     let nonce = decrypt.nonce;
-    println!("{:?}", nonce);
     let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key));
-
     let plaintext = cipher.decrypt(GenericArray::from_slice(&nonce), buffer.as_ref());
-    println!("{:?}", plaintext);
     Ok(String::from_utf8(plaintext.map_err(|e| anyhow::anyhow!(e))?).unwrap())
 }
 
@@ -316,7 +311,7 @@ pub fn process_chacha_key_generate() -> anyhow::Result<Vec<Vec<u8>>> {
     let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
     Ok(vec![key.to_vec(), nonce.to_vec()])
 }
-
+// Base64_S
 #[cfg(test)]
 mod tests {
     use super::*;

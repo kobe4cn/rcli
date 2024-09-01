@@ -1,13 +1,9 @@
 use core::fmt;
-use std::{
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{path::PathBuf, str::FromStr};
 
-use anyhow::anyhow;
 use clap::Parser;
 
-use super::check_file_exist;
+use super::{check_file_exist, verify_path};
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
@@ -120,14 +116,5 @@ impl fmt::Display for TextSignFormat {
             TextSignFormat::Blake3 => write!(f, "blake3"),
             TextSignFormat::ED25519 => write!(f, "ed25519"),
         }
-    }
-}
-
-fn verify_path(s: &str) -> anyhow::Result<PathBuf> {
-    let p = Path::new(s);
-    if p.exists() && p.is_dir() {
-        Ok(s.into())
-    } else {
-        Err(anyhow!("Path should not exist or is not a directory"))
     }
 }
