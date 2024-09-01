@@ -1,16 +1,19 @@
 mod base64;
 mod csv;
 mod genpass;
+mod http;
 mod jwt;
 mod text;
 
 use std::path::{Path, PathBuf};
 
 pub use self::base64::{Base64Format, Base64SubCommand};
-use self::csv::CsvOpts;
+pub use self::csv::CsvOpts;
 pub use self::csv::OutputFormat;
 pub use self::genpass::GenPassOpts;
+pub use self::http::HttpSubCommand;
 pub use self::text::{TextSignFormat, TextSubCommand};
+
 use anyhow::anyhow;
 use clap::Parser;
 pub use jwt::JwtSubCommand;
@@ -34,6 +37,8 @@ pub enum Subcommand {
     Text(TextSubCommand),
     #[command(subcommand)]
     Jwt(JwtSubCommand),
+    #[command(subcommand)]
+    Http(HttpSubCommand),
 }
 
 fn check_file_exist(s: &str) -> Result<String, String> {

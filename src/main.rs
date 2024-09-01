@@ -4,12 +4,15 @@ use std::fs;
 use clap::Parser;
 use rcli::{
     process_csv, process_decode, process_decrypt, process_encode, process_encrypt, process_genpass,
-    process_jwt_sign, process_jwt_verify, process_key_generate, process_sign, process_verify,
-    Base64SubCommand, JwtSubCommand, Opts, Subcommand, TextSubCommand,
+    process_http_serve, process_jwt_sign, process_jwt_verify, process_key_generate, process_sign,
+    process_verify, Base64SubCommand, HttpSubCommand, JwtSubCommand, Opts, Subcommand,
+    TextSubCommand,
 };
 
 use zxcvbn::zxcvbn;
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
     let opts = Opts::parse();
     match opts.cmd {
         Subcommand::Csv(opts) => {
@@ -90,6 +93,12 @@ fn main() -> anyhow::Result<()> {
                 println!("{:?}", ret);
                 // let ret = process_jwt_verify(&opts)?;
                 // println!("{}", ret);
+            }
+        },
+        Subcommand::Http(subcmd) => match subcmd {
+            HttpSubCommand::Serve(opts) => {
+                // println!("http://0.0.0.0:{} for {:?}", opts.port, opts.dir);
+                process_http_serve(opts.dir, opts.port).await?;
             }
         },
     }
