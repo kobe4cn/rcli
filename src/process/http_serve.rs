@@ -1,7 +1,7 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::Html,
+    response::{Html, IntoResponse},
     routing::get,
     Router,
 };
@@ -42,7 +42,8 @@ pub async fn process_http_serve(_path: PathBuf, port: u16) -> anyhow::Result<()>
 async fn file_handler(
     State(state): State<Arc<HttpServeState>>,
     Path(path): Path<String>,
-) -> (StatusCode, String) {
+) -> impl IntoResponse {
+    //(StatusCode, String)
     println!("path: {:?}", path);
     // let path = match path {
     //     Some(p) => p,
@@ -65,23 +66,26 @@ async fn file_handler(
             }
 
             let content = format!("<html><body><ul>{}</ul></body></html>", content);
-            return (StatusCode::OK, content);
+            return (StatusCode::OK, Html(content));
         }
         match tokio::fs::read_to_string(&p).await {
             Ok(content) => {
                 info!("file readded {} bytes: ", content.len());
-                (StatusCode::OK, content)
+                (StatusCode::OK, Html(content))
             }
             Err(e) => {
                 warn!("error reading file: {:?}", e);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("error reading file: {:?}", e),
+                    Html(format!("error reading file: {:?}", e)),
                 )
             }
         }
     } else {
-        (StatusCode::NOT_FOUND, format!("file not found: {:?}", &p))
+        (
+            StatusCode::NOT_FOUND,
+            Html(format!("file not found: {:?}", &p)),
+        )
     }
 }
 
