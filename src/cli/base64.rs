@@ -3,6 +3,8 @@ use std::str::FromStr;
 
 use clap::Parser;
 
+use crate::CmdExcetor;
+
 use super::check_file_exist;
 
 #[derive(Debug, Parser)]
@@ -68,6 +70,30 @@ impl fmt::Display for Base64Format {
         match self {
             Base64Format::Standard => write!(f, "standard"),
             Base64Format::UrlSafe => write!(f, "url_safe"),
+        }
+    }
+}
+
+impl CmdExcetor for Base64EncodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encode = crate::process_encode(&self.input, self.format)?;
+        println!("{}", encode);
+        Ok(())
+    }
+}
+
+impl CmdExcetor for Base64DecodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decode = crate::process_decode(&self.input, self.format)?;
+        println!("{}", decode);
+        Ok(())
+    }
+}
+impl CmdExcetor for Base64SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCommand::Encode(opts) => opts.execute().await,
+            Base64SubCommand::Decode(opts) => opts.execute().await,
         }
     }
 }

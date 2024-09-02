@@ -3,6 +3,8 @@ use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
+use crate::CmdExcetor;
+
 use super::{check_file_exist, verify_path};
 
 #[derive(Debug, Parser)]
@@ -115,6 +117,75 @@ impl fmt::Display for TextSignFormat {
         match self {
             TextSignFormat::Blake3 => write!(f, "blake3"),
             TextSignFormat::ED25519 => write!(f, "ed25519"),
+        }
+    }
+}
+
+impl CmdExcetor for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let sig = crate::process_sign(&self.input, &self.key, self.format)?;
+        println!("{}", sig);
+        Ok(())
+    }
+}
+
+impl CmdExcetor for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let ret = crate::process_verify(&self.input, &self.key, &self.signature, self.format)?;
+        println!("{}", ret);
+        Ok(())
+    }
+}
+impl CmdExcetor for TextKeyGenerateOps {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = crate::process_key_generate(self.format)?;
+        match self.format {
+            crate::TextSignFormat::Blake3 => {
+                let name = &self.output.join("blake3.txt");
+                std::fs::write(name, &key[0])?;
+            }
+            crate::TextSignFormat::ED25519 => {
+                let name = &self.output;
+                std::fs::write(name.join("ed25519.sk"), &key[0])?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl CmdExcetor for TextEncryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let ret = crate::process_encrypt(&self.input, &self.key, &self.nonce)?;
+        println!("{}", ret);
+        Ok(())
+    }
+}
+
+impl CmdExcetor for TextDecryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let ret = crate::process_decrypt(&self.input, &self.key, &self.nonce)?;
+        println!("{}", ret);
+        Ok(())
+    }
+}
+
+impl CmdExcetor for ChaCha20KeyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = crate::process_chacha_key_generate()?;
+        println!("{:?}", key);
+        Ok(())
+    }
+}
+
+impl CmdExcetor for TextSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await,
+            TextSubCommand::Verify(opts) => opts.execute().await,
+            TextSubCommand::Generate(opts) => opts.execute().await,
+            TextSubCommand::Encrypt(opts) => opts.execute().await,
+            TextSubCommand::Decrypt(opts) => opts.execute().await,
+            TextSubCommand::Chakey(opts) => opts.execute().await,
         }
     }
 }

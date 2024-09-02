@@ -5,6 +5,8 @@ use std::{
 
 use clap::Parser;
 
+use crate::CmdExcetor;
+
 use super::check_file_exist;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -63,5 +65,16 @@ impl FromStr for OutputFormat {
 impl Display for OutputFormat {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", String::from(*self))
+    }
+}
+
+impl CmdExcetor for CsvOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let output = if let Some(output) = self.output {
+            output.clone()
+        } else {
+            format!("output.{}", self.format)
+        };
+        crate::process_csv(&self.input, &output, &self.format)
     }
 }
