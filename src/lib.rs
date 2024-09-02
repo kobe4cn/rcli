@@ -1,15 +1,14 @@
 mod cli;
 mod process;
 mod utils;
-pub use cli::{
-    Base64Format, Base64SubCommand, HttpSubCommand, JwtSubCommand, Opts, Subcommand,
-    TextSignFormat, TextSubCommand,
-};
+pub use cli::*;
 
+use enum_dispatch::enum_dispatch;
 pub use process::*;
 pub use utils::*;
 
 #[allow(async_fn_in_trait)]
+#[enum_dispatch]
 pub trait CmdExcetor {
     async fn execute(self) -> anyhow::Result<()>;
 }

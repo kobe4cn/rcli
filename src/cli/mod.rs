@@ -7,17 +7,16 @@ mod text;
 
 use std::path::{Path, PathBuf};
 
-use crate::CmdExcetor;
-
-pub use self::base64::{Base64Format, Base64SubCommand};
-pub use self::csv::CsvOpts;
-pub use self::csv::OutputFormat;
-pub use self::genpass::GenPassOpts;
-pub use self::http::HttpSubCommand;
-pub use self::text::{TextSignFormat, TextSubCommand};
+pub use self::base64::*;
+pub use self::csv::*;
+pub use self::genpass::*;
+pub use self::http::*;
+pub use self::jwt::*;
+pub use self::text::*;
 
 use anyhow::{anyhow, Ok};
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 pub use jwt::JwtSubCommand;
 
 #[derive(Debug, Parser)]
@@ -28,6 +27,7 @@ pub struct Opts {
 }
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExcetor)]
 pub enum Subcommand {
     #[command(name = "csv", about = "Convert CSV to JSON")]
     Csv(CsvOpts),
@@ -42,19 +42,19 @@ pub enum Subcommand {
     #[command(subcommand, about = "HTTP server")]
     Http(HttpSubCommand),
 }
-impl CmdExcetor for Subcommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            Subcommand::Csv(opts) => opts.execute().await,
+// impl CmdExcetor for Subcommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             Subcommand::Csv(opts) => opts.execute().await,
 
-            Subcommand::GenPass(opts) => opts.execute().await,
-            Subcommand::Base64(subcmd) => subcmd.execute().await,
-            Subcommand::Text(subcmd) => subcmd.execute().await,
-            Subcommand::Jwt(subcmd) => subcmd.execute().await,
-            Subcommand::Http(subcmd) => subcmd.execute().await,
-        }
-    }
-}
+//             Subcommand::GenPass(opts) => opts.execute().await,
+//             Subcommand::Base64(subcmd) => subcmd.execute().await,
+//             Subcommand::Text(subcmd) => subcmd.execute().await,
+//             Subcommand::Jwt(subcmd) => subcmd.execute().await,
+//             Subcommand::Http(subcmd) => subcmd.execute().await,
+//         }
+//     }
+// }
 
 fn check_file_exist(s: &str) -> anyhow::Result<String> {
     if s == "-" || Path::new(s).exists() {

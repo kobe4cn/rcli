@@ -1,12 +1,14 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use crate::CmdExcetor;
 
 use super::{check_file_exist, verify_path};
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExcetor)]
 pub enum JwtSubCommand {
     #[command(about = "sign the jwt token")]
     Sign(JwtSignOpts),
@@ -56,11 +58,11 @@ impl CmdExcetor for JwtVerifyOpts {
     }
 }
 
-impl CmdExcetor for JwtSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            JwtSubCommand::Sign(opts) => opts.execute().await,
-            JwtSubCommand::Verify(opts) => opts.execute().await,
-        }
-    }
-}
+// impl CmdExcetor for JwtSubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             JwtSubCommand::Sign(opts) => opts.execute().await,
+//             JwtSubCommand::Verify(opts) => opts.execute().await,
+//         }
+//     }
+// }

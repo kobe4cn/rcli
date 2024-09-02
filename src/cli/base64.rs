@@ -2,12 +2,14 @@ use core::fmt;
 use std::str::FromStr;
 
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use crate::CmdExcetor;
 
 use super::check_file_exist;
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExcetor)]
 pub enum Base64SubCommand {
     /// Decode base64
     #[command(name = "decode", about = "Decode base64 string")]
@@ -89,11 +91,11 @@ impl CmdExcetor for Base64DecodeOpts {
         Ok(())
     }
 }
-impl CmdExcetor for Base64SubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            Base64SubCommand::Encode(opts) => opts.execute().await,
-            Base64SubCommand::Decode(opts) => opts.execute().await,
-        }
-    }
-}
+// impl CmdExcetor for Base64SubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             Base64SubCommand::Encode(opts) => opts.execute().await,
+//             Base64SubCommand::Decode(opts) => opts.execute().await,
+//         }
+//     }
+// }

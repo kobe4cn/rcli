@@ -2,12 +2,14 @@ use core::fmt;
 use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use crate::CmdExcetor;
 
 use super::{check_file_exist, verify_path};
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExcetor)]
 pub enum TextSubCommand {
     /// Decode base64
     #[command(about = "sign a message with a private key")]
@@ -177,15 +179,15 @@ impl CmdExcetor for ChaCha20KeyOpts {
     }
 }
 
-impl CmdExcetor for TextSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubCommand::Sign(opts) => opts.execute().await,
-            TextSubCommand::Verify(opts) => opts.execute().await,
-            TextSubCommand::Generate(opts) => opts.execute().await,
-            TextSubCommand::Encrypt(opts) => opts.execute().await,
-            TextSubCommand::Decrypt(opts) => opts.execute().await,
-            TextSubCommand::Chakey(opts) => opts.execute().await,
-        }
-    }
-}
+// impl CmdExcetor for TextSubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             TextSubCommand::Sign(opts) => opts.execute().await,
+//             TextSubCommand::Verify(opts) => opts.execute().await,
+//             TextSubCommand::Generate(opts) => opts.execute().await,
+//             TextSubCommand::Encrypt(opts) => opts.execute().await,
+//             TextSubCommand::Decrypt(opts) => opts.execute().await,
+//             TextSubCommand::Chakey(opts) => opts.execute().await,
+//         }
+//     }
+// }
